@@ -64,7 +64,7 @@ app.post('/api/shorturl', (req, res) => {
 
 // GET - redirect ke URL asli
 app.get('/api/shorturl/:short_url', (req, res) => {
-  const shortUrl = req.params.short_url;
+  const shortUrl = parseInt(req.params.short_url); // tambah parseInt di sini
   const originalUrl = urlDatabase[shortUrl];
 
   if (!originalUrl) {
