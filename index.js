@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dns = require('dns');
+const Datastore = require('nedb');
 const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
@@ -8,8 +9,8 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const urlDatabase = {};
-let counter = 1;
+// Database tersimpan ke file db.json secara otomatis
+const db = new Datastore({ filename: 'db.json', autoload: true });
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
@@ -35,25 +36,25 @@ app.post('/api/shorturl', (req, res) => {
     }
 
     // Cek apakah URL sudah ada
-    const existing = Object.entries(urlDatabase).find(
-      ([, val]) => val === originalUrl
-    );
-    if (existing) {
-      return res.json({
-        original_url: originalUrl,
-        short_url: parseInt(existing[0])
+    db.findOne({ original_url: originalUrl }, (err, doc) => {
+      if (doc) {
+        return res.json({
+          original_url: doc.original_url,
+          short_url: doc.short_url
+        });
+      }
+
+      // Hitung jumlah dokumen untuk counter
+      db.count({}, (err, count) => {
+        const shortUrl = count + 1;
+
+        db.insert({ original_url: originalUrl, short_url: shortUrl }, (err, newDoc) => {
+          res.json({
+            original_url: newDoc.original_url,
+            short_url: newDoc.short_url
+          });
+        });
       });
-    }
-
-    const shortUrl = counter++;
-    urlDatabase[shortUrl] = originalUrl;
-
-    console.log('Saved:', shortUrl, '->', originalUrl);
-    console.log('Database:', urlDatabase);
-
-    res.json({
-      original_url: originalUrl,
-      short_url: shortUrl
     });
   });
 });
@@ -61,17 +62,12 @@ app.post('/api/shorturl', (req, res) => {
 app.get('/api/shorturl/:short_url', (req, res) => {
   const shortUrl = parseInt(req.params.short_url);
 
-  console.log('Looking for:', shortUrl);
-  console.log('Database:', urlDatabase);
-
-  const originalUrl = urlDatabase[shortUrl];
-
-  if (!originalUrl) {
-    return res.json({ error: 'No short URL found for the given input' });
-  }
-
-  res.set('Access-Control-Allow-Origin', '*');
-  res.redirect(302, originalUrl);
+  db.findOne({ short_url: shortUrl }, (err, doc) => {
+    if (!doc) {
+      return res.json({ error: 'No short URL found for the given input' });
+    }
+    res.redirect(doc.original_url);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
