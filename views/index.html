@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Request Header Parser</title>
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="/public/style.css">
 </head>
 <body>
-  <h1>Request Header Parser Microservice</h1>
-  <p>Hit endpoint: <a href="/api/whoami">/api/whoami</a></p>
+  <h1>URL Shortener Microservice</h1>
+  <form action="/api/shorturl" method="POST">
+    <input type="text" name="url" placeholder="https://www.example.com" required>
+    <button type="submit">Shorten</button>
+  </form>
 </body>
 </html>
