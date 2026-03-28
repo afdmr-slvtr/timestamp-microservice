@@ -70,6 +70,7 @@ app.get('/api/shorturl/:short_url', (req, res) => {
     return res.json({ error: 'No short URL found for the given input' });
   }
 
+  res.set('Access-Control-Allow-Origin', '*');
   res.redirect(302, originalUrl);
 });
 
