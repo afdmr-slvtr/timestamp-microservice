@@ -70,7 +70,7 @@ app.get('/api/shorturl/:short_url', (req, res) => {
     return res.json({ error: 'No short URL found for the given input' });
   }
 
-  res.redirect(301, originalUrl);
+  res.redirect(302, originalUrl);
 });
 
 const PORT = process.env.PORT || 3000;
